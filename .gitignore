@@ -1,0 +1,22 @@
+.venv/
+__pycache__/
+.pytest_cache/
+node_modules/
+artifacts/*.parquet
+artifacts/live-cache/
+.env
+*.log
+test-results/
+playwright-report/
+artifacts/live-*.json
+# Local archived caches and generated live snapshots
+unnecessary/cache/
+unnecessary/historical/artifacts/live-*.json
+
+# Local settings, secrets and generated files
+*.pyc
+.env.*
+.DS_Store
+.agents/
+.codex/
+unnecessary/

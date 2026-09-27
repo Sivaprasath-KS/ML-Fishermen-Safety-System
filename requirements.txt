@@ -1,0 +1,12 @@
+fastapi==0.141.1
+uvicorn==0.52.4
+httpx==0.28.1
+numpy==2.5.3
+pandas==3.0.5
+xarray==2026.7.0
+netCDF4==1.7.4
+scikit-learn==1.9.1
+xgboost-cpu==3.4.1
+joblib==1.6.0
+global-land-mask==1.0.0
+pytest==9.1.1

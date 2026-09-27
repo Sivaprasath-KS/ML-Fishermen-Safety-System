@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#093e46"><meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="description" content="Tamil Nadu ocean forecasts and explainable fishing route planning.">
+  <link rel="manifest" href="/manifest.webmanifest"><link rel="icon" href="/icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/icons/icon-192.png">
+  <link rel="stylesheet" href="/vendor/leaflet.css"><link rel="stylesheet" href="/styles.css">
+  <title>Kadal — Your ocean, understood</title>
+</head>
+<body>
+  <header class="topbar"><a class="brand" href="/" aria-label="Kadal home"><span class="brandmark">≈</span><span>kadal<span class="brand-sub">கடல் · OCEAN COMPANION</span></span></a><span class="region">Tamil Nadu coast <span class="dot"></span></span><button id="install" class="subtle">Install app ↗</button></header>
+  <main>
+    <section class="intro"><div><div class="eyebrow">BEFORE YOU SET SAIL</div><h1>Your ocean,<br><em>understood.</em></h1><p>Read the conditions. Compare the journey.<br>Plan with a clearer view of the sea.</p></div><div class="intro-side"><span class="coordinate">07°–14° N &nbsp; 77°–81° E</span><span>TAMIL NADU · BAY OF BENGAL & INDIAN OCEAN</span><div id="connection" class="connection">Checking connection…</div></div></section>
+    <div class="notice"><span>ⓘ</span><p>Research advisory. Forecasts are model estimates, not onboard measurements. Check official marine warnings and local advice before departure.</p></div>
+    <div id="boat-warning" class="boundary-banner" role="alert" hidden></div>
+    <nav class="tabs main-tabs" aria-label="App views"><button class="active" data-tab="safety" aria-selected="true">1 · Safety Prediction</button><button data-tab="plan" aria-selected="false">2 · Route Advisory</button></nav>
+<section id="safety" class="view active" aria-labelledby="safety-title">
+      <header class="safety-heading">
+        <h2 id="safety-title">Sea Safety Prediction</h2>
+        <p id="safety-location">13.13°N • 80.34°E</p>
+      </header>
+      <form id="safety-form" class="safety-controls">
+        <div><label for="safety-lat">Latitude</label><input id="safety-lat" type="number" min="7" max="14" step="any" value="13.13" required></div>
+        <div><label for="safety-lon">Longitude</label><input id="safety-lon" type="number" min="77" max="81" step="any" value="80.34" required></div>
+        <button type="button" id="safety-gps" class="subtle">Use My Location</button>
+        <div><label for="prediction-model">Model</label><select id="prediction-model"><option value="auto" selected>Auto</option><option value="random_forest">Random Forest</option><option value="xgboost">XGBoost</option></select></div>
+        <button type="submit" id="predict-safety" class="primary">Fetch &amp; Predict</button>
+        <p id="safety-input-status" class="status" role="status">Tamil Nadu ocean coverage: 7–14°N, 77–81°E.</p>
+      </form>
+      <p id="data-stamp" class="status" role="status">Waiting for live data.</p>
+      <div class="safety-panels" aria-live="polite" aria-busy="false">
+        <section class="safety-panel" aria-labelledby="current-title">
+          <h3 id="current-title">CURRENT CONDITIONS</h3>
+          <dl class="safety-readings">
+            <div><dt><span aria-hidden="true">≈</span> Wave Height</dt><dd><strong id="wave-value">—</strong> <span>m</span></dd></div>
+            <div><dt><span aria-hidden="true">↝</span> Wind Speed</dt><dd><strong id="wind-value">—</strong> <span>m/s</span></dd></div>
+          </dl>
+          <div class="safety-risk"><span>Risk</span><strong id="current-risk" class="risk-badge unknown">Unavailable</strong></div>
+        </section>
+        <section id="forecast-panel" class="safety-panel" aria-labelledby="forecast-title">
+          <h3 id="forecast-title">6-HOUR FORECAST</h3>
+          <dl class="safety-readings">
+            <div><dt><span aria-hidden="true">≈</span> Predicted Wave Height</dt><dd><strong id="prediction-value">—</strong> <span>m</span></dd></div>
+            <div><dt><span aria-hidden="true">↝</span> Predicted Wind Speed</dt><dd><strong id="prediction-wind-value">—</strong> <span>m/s</span></dd></div>
+          </dl>
+          <div class="safety-risk"><span>Risk</span><strong id="forecast-risk" class="risk-badge unknown">Unavailable</strong></div>
+          <p class="safety-horizon">+6 hours</p>
+        </section>
+      </div>
+    </section>
+    <section id="plan" class="view"><div class="section-heading"><div><div class="section-label">02 / ROUTE ADVISORY SYSTEM</div><h2>Plan the journey. Watch the border.</h2><p class="hint">Treaty-derived India–Sri Lanka boundary. The study-region edge is not an international border.</p></div></div>
+      <section class="tracking-panel panel"><div><h3>Live boat border monitor</h3><p id="gps-status" role="status">Stopped · GPS monitoring has not started.</p><p class="hint">Keep the app open and the phone on the boat. Background or locked-screen monitoring is not guaranteed.</p></div><div class="tracking-actions"><button id="start-tracking" class="primary" disabled>Start live GPS</button><button id="stop-tracking" class="subtle" disabled>Stop</button><label><input id="alert-sound" type="checkbox" checked> Sound alerts</label></div><p id="last-border-event" class="hint">No crossing recorded in this session.</p></section>
+      <div id="route-border-warning" class="boundary-banner" role="alert" hidden></div>
+
+      <div class="workspace">
+        <aside class="planner panel">
+          <div class="section-label">01 / YOUR JOURNEY</div><h2>Where are you heading?</h2>
+          <label for="port">Departure area</label><select id="port" aria-label="Departure area"></select><p class="hint">Starts offshore, outside the harbour.</p><label for="model-choice">Prediction model</label><select id="model-choice"><option value="auto">Auto · best validation score</option><option value="random_forest">Random Forest</option><option value="xgboost">XGBoost</option></select>
+          <div class="point-label"><span class="point-dot start"></span>Start point<button id="gps" class="text-button">Use GPS ↗</button></div>
+          <div class="pair"><div><label for="start-lat">Latitude</label><input id="start-lat" type="number" step="0.001" min="7" max="14" value="13.13"></div><div><label for="start-lon">Longitude</label><input id="start-lon" type="number" step="0.001" min="77" max="81" value="80.34"></div></div>
+          <div class="point-label"><span class="point-dot end"></span>Destination</div>
+          <div class="pair"><div><label for="end-lat">Latitude</label><input id="end-lat" type="number" step="0.001" min="7" max="14" value="13.25"></div><div><label for="end-lon">Longitude</label><input id="end-lon" type="number" step="0.001" min="77" max="81" value="80.65"></div></div>
+          <div class="map-choice"><button id="pick-start" class="subtle">⌖ Pick start on map</button><button id="pick-end" class="subtle">⌖ Pick destination</button></div>
+          <details><summary>Boat & planning limits <span>↗</span></summary><p class="hint">Illustrative defaults. Set limits appropriate to your vessel with qualified local guidance.</p><div class="pair"><div><label for="speed">Speed · knots</label><input id="speed" type="number" min="2" max="30" value="8"></div><div><label for="hours">Trip window · h</label><input id="hours" type="number" min="6" max="24" value="12"></div><div><label for="wave-limit">Wave limit · m</label><input id="wave-limit" type="number" min="0.3" max="5" step="0.1" value="2"></div><div><label for="wind-limit">Wind limit · m/s</label><input id="wind-limit" type="number" min="2" max="25" step="0.5" value="10"></div></div><p class="hint">Routing prioritises the lowest peak risk, then the shortest distance. Danger areas are excluded even if vessel limits are raised.</p></details>
+          <button id="plan-route" class="primary" disabled>Compare routes <span>→</span></button><p id="route-status" class="status" role="status">Choose two offshore points, 1–160 km apart.</p>
+        </aside>
+        <div class="map-column"><div class="map-header"><div><span class="section-label">02 / THE BIG PICTURE</span><h2>Out on the water</h2></div><span class="map-badge">OFFSHORE PLANNER</span></div><div id="map" aria-label="Interactive ocean route map"></div><div class="map-footer"><span><i class="legend-line teal"></i>Safest then shortest</span><span><i class="legend-line orange"></i>Shortest feasible</span><span><i class="legend-line border-line"></i>Maritime boundary</span><span id="map-mode">Tap a marker to inspect a point</span></div><div id="route-results" class="route-results" aria-live="polite"><div class="empty-state"><span>↗</span><div><strong>A clearer route starts here.</strong><p>Compare distance and estimated weather exposure for your trip.</p></div></div></div></div>
+      </div>
+
+    </section>
+    <footer><span class="footer-brand">≈ kadal</span><span>Built for a better-informed journey. · SDG 14</span><span><a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a> & model providers including DWD · <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap</a></span></footer>
+  </main><dialog id="install-dialog"><h2>Take Kadal with you.</h2><p>Android: open in Chrome → menu → Install app.</p><p>iPhone: open in Safari → Share → Add to Home Screen.</p><p class="hint">Installation and GPS require HTTPS (or localhost for development).</p><button class="primary" id="close-dialog">Got it</button></dialog>
+  <script src="/vendor/leaflet.js"></script><script src="/boundary.js"></script><script src="/app.js" defer></script>
+</body></html>

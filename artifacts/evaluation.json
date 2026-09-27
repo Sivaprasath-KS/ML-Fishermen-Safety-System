@@ -1,0 +1,125 @@
+{
+  "target": "Significant wave height 6 hours ahead",
+  "training_years": "2019\u20132023",
+  "validation_year": 2024,
+  "test_year": 2025,
+  "samples": {
+    "train": 408912,
+    "validation": 81928,
+    "test": 81704
+  },
+  "coverage": {
+    "south": 7.0,
+    "north": 14.0,
+    "west": 77.0,
+    "east": 81.0
+  },
+  "cadence_hours": 6,
+  "wave_grid_degrees": 0.5,
+  "weather_grid_degrees": 0.25,
+  "model": "random_forest",
+  "selected_regressor": "random_forest",
+  "candidates": [
+    {
+      "name": "random_forest",
+      "validation_mae_m": 0.07263564079881416,
+      "training_seconds": 478.9815548160004,
+      "test_metrics": {
+        "mae_m": 0.0742284383206603,
+        "rmse_m": 0.10491011659345571,
+        "r2": 0.9609071711808711
+      }
+    },
+    {
+      "name": "xgboost",
+      "validation_mae_m": 0.07475510984659195,
+      "training_seconds": 89.23023360200023,
+      "test_metrics": {
+        "mae_m": 0.07598578929901123,
+        "rmse_m": 0.10732023025196304,
+        "r2": 0.9590903520584106
+      }
+    }
+  ],
+  "test_metrics": {
+    "mae_m": 0.0742284383206603,
+    "rmse_m": 0.10491011659345571,
+    "r2": 0.9609071711808711
+  },
+  "persistence_baseline": {
+    "mae_m": 0.09297041594982147,
+    "rmse_m": 0.12985660890973114,
+    "r2": 0.9401050209999084
+  },
+  "mae_improvement_percent": 20.15907688234578,
+  "interval": {
+    "method": "2024 absolute residual 90th percentile",
+    "half_width_m": 0.1672716656993536,
+    "test_coverage": 0.8984627435621267
+  },
+  "batch_prediction_seconds": 1.7045007119995716,
+  "prediction_ms_per_row": 0.020861900421026775,
+  "permutation_importance_mae_m": {
+    "wave_now_m": 0.46871687301061504,
+    "wave_6h_ago_m": 0.01697490391632317,
+    "wind_now_ms": 0.027397046964557917,
+    "wind_6h_ago_ms": 0.0213467597037042,
+    "latitude": 0.0029131935816963848,
+    "longitude": 0.004884831372811728,
+    "season_sin": 0.0009138378508601747,
+    "season_cos": 0.00573249731559151,
+    "hour_sin": 0.002686592545118554,
+    "hour_cos": 0.010043072930271174
+  },
+  "audit": [
+    {
+      "year": 2019,
+      "grid_rows": 197100,
+      "missing_wave_rows": 115340,
+      "times": 1460
+    },
+    {
+      "year": 2020,
+      "grid_rows": 197640,
+      "missing_wave_rows": 115656,
+      "times": 1464
+    },
+    {
+      "year": 2021,
+      "grid_rows": 197100,
+      "missing_wave_rows": 115340,
+      "times": 1460
+    },
+    {
+      "year": 2022,
+      "grid_rows": 197100,
+      "missing_wave_rows": 115340,
+      "times": 1460
+    },
+    {
+      "year": 2023,
+      "grid_rows": 197100,
+      "missing_wave_rows": 115340,
+      "times": 1460
+    },
+    {
+      "year": 2024,
+      "grid_rows": 197640,
+      "missing_wave_rows": 115656,
+      "times": 1464
+    },
+    {
+      "year": 2025,
+      "grid_rows": 197100,
+      "missing_wave_rows": 115340,
+      "times": 1460
+    }
+  ],
+  "limitations": [
+    "Retrospective historical-analysis evaluation, not prospective live forecast validation.",
+    "Live operational-model inputs differ from historical analyses; accuracy and interval coverage can shift.",
+    "Coarse wave grid cannot resolve harbour conditions or small coastal hazards.",
+    "Risk scores are transparent heuristics, not learned accident probabilities.",
+    "No stakeholder field evaluation has been conducted."
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "name": "kadal-ocean-advisory",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "test:browser": "playwright test",
+    "start": "bash scripts/run.sh"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.63.0"
+  }
+}

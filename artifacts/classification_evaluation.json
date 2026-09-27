@@ -1,0 +1,413 @@
+{
+  "task": "Forecast project-derived sea-risk class six hours ahead",
+  "selected_classifier": "random_forest",
+  "selection_rule": "Highest 2024 macro F1; danger recall breaks ties. Test year never selects the model.",
+  "training_years": "2019\u20132023",
+  "validation_year": 2024,
+  "test_year": 2025,
+  "policy": {
+    "version": "imd-sea-state-derived-v1",
+    "label_origin": "project_derived_from_government_guidance",
+    "government_issued_labels": false,
+    "source_title": "IMD Cyclone Warning in India \u2014 Standard Operation Procedure, Table 6.10, printed page 146",
+    "source_url": "https://rsmcnewdelhi.imd.gov.in/images/pdf/sop.pdf#page=174",
+    "boundary_source_url": "https://www.nodc.noaa.gov/gtspp/document/codetbls/wmocodes/table3700.html",
+    "mapping": {
+      "safe": "Wave height \u22641.25 m AND wind <17 knots (8.746 m/s).",
+      "moderate": "Wave height >1.25 to 2.5 m OR wind \u226517 to <22 knots, unless danger applies.",
+      "danger": "Wave height >2.5 m OR wind \u226522 knots (11.318 m/s)."
+    },
+    "wave_boundaries_m": [
+      1.25,
+      2.5
+    ],
+    "wind_boundaries_knots": [
+      17,
+      22
+    ],
+    "boundary_rule": "Exact wave boundaries retain the lower sea-state group (WMO 3700). Wind uses continuous cutoffs at the published lower knot bounds.",
+    "aggregation": "The worse of wave and wind groups determines the project class.",
+    "meaning": "Safe means the lowest project weather-risk class, not permission to sail or a vessel-specific guarantee.",
+    "limitations": "IMD publishes sea-state descriptions, not this three-class safety taxonomy. This mapping, its wind/wave combination and its use on significant total wave height are project assumptions, not government endorsements. No historical official warning labels are present."
+  },
+  "labels": [
+    "safe",
+    "moderate",
+    "danger"
+  ],
+  "class_counts": {
+    "train": {
+      "safe": 247879,
+      "moderate": 150026,
+      "danger": 11007
+    },
+    "validation": {
+      "safe": 51137,
+      "moderate": 28665,
+      "danger": 2126
+    },
+    "test": {
+      "safe": 49431,
+      "moderate": 29693,
+      "danger": 2580
+    }
+  },
+  "models": {
+    "random_forest": {
+      "validation": {
+        "accuracy": 0.9182574943853139,
+        "balanced_accuracy": 0.8697285972605355,
+        "macro_f1": 0.8328237942265669,
+        "confusion_matrix": [
+          [
+            48380,
+            2752,
+            5
+          ],
+          [
+            2265,
+            25183,
+            1217
+          ],
+          [
+            4,
+            454,
+            1668
+          ]
+        ],
+        "per_class": {
+          "safe": {
+            "precision": 0.9552014847282276,
+            "recall": 0.9460860042630581,
+            "f1-score": 0.9506218929911776,
+            "support": 51137.0
+          },
+          "moderate": {
+            "precision": 0.8870689351509388,
+            "recall": 0.8785278213849642,
+            "f1-score": 0.8827777193535948,
+            "support": 28665.0
+          },
+          "danger": {
+            "precision": 0.5771626297577854,
+            "recall": 0.7845719661335842,
+            "f1-score": 0.6650717703349283,
+            "support": 2126.0
+          },
+          "accuracy": 0.9182574943853139,
+          "macro avg": {
+            "precision": 0.8064776832123174,
+            "recall": 0.8697285972605355,
+            "f1-score": 0.8328237942265669,
+            "support": 81928.0
+          },
+          "weighted avg": {
+            "precision": 0.9215532797274936,
+            "recall": 0.9182574943853139,
+            "f1-score": 0.9194746320048421,
+            "support": 81928.0
+          }
+        }
+      },
+      "training_seconds": 561.1962719740004,
+      "test_prediction_seconds": 0.5408330249993014,
+      "test": {
+        "accuracy": 0.9164300401449134,
+        "balanced_accuracy": 0.8795643063181166,
+        "macro_f1": 0.8471209586315994,
+        "confusion_matrix": [
+          [
+            46645,
+            2776,
+            10
+          ],
+          [
+            2323,
+            26128,
+            1242
+          ],
+          [
+            4,
+            473,
+            2103
+          ]
+        ],
+        "per_class": {
+          "safe": {
+            "precision": 0.9524830515396553,
+            "recall": 0.9436386073516619,
+            "f1-score": 0.948040202026361,
+            "support": 49431.0
+          },
+          "moderate": {
+            "precision": 0.8894032746706607,
+            "recall": 0.8799380325329202,
+            "f1-score": 0.884645336041984,
+            "support": 29693.0
+          },
+          "danger": {
+            "precision": 0.6268256333830104,
+            "recall": 0.8151162790697675,
+            "f1-score": 0.7086773378264533,
+            "support": 2580.0
+          },
+          "accuracy": 0.9164300401449134,
+          "macro avg": {
+            "precision": 0.8229039865311089,
+            "recall": 0.8795643063181166,
+            "f1-score": 0.8471209586315994,
+            "support": 81704.0
+          },
+          "weighted avg": {
+            "precision": 0.9192750818758053,
+            "recall": 0.9164300401449134,
+            "f1-score": 0.9174426799306268,
+            "support": 81704.0
+          }
+        }
+      }
+    },
+    "xgboost": {
+      "validation": {
+        "accuracy": 0.9042940142564203,
+        "balanced_accuracy": 0.8860613675633936,
+        "macro_f1": 0.7970563231446338,
+        "confusion_matrix": [
+          [
+            48063,
+            3034,
+            40
+          ],
+          [
+            2128,
+            24163,
+            2374
+          ],
+          [
+            4,
+            261,
+            1861
+          ]
+        ],
+        "per_class": {
+          "safe": {
+            "precision": 0.957525649965136,
+            "recall": 0.9398869702954807,
+            "f1-score": 0.9486243240042632,
+            "support": 51137.0
+          },
+          "moderate": {
+            "precision": 0.8799985432296599,
+            "recall": 0.8429443572300716,
+            "f1-score": 0.8610730003741781,
+            "support": 28665.0
+          },
+          "danger": {
+            "precision": 0.4353216374269006,
+            "recall": 0.8753527751646284,
+            "f1-score": 0.5814716450554601,
+            "support": 2126.0
+          },
+          "accuracy": 0.9042940142564203,
+          "macro avg": {
+            "precision": 0.7576152768738988,
+            "recall": 0.8860613675633936,
+            "f1-score": 0.7970563231446338,
+            "support": 81928.0
+          },
+          "weighted avg": {
+            "precision": 0.9168494434761614,
+            "recall": 0.9042940142564203,
+            "f1-score": 0.9084643629738274,
+            "support": 81928.0
+          }
+        }
+      },
+      "training_seconds": 25.006977101000302,
+      "test_prediction_seconds": 0.8637233339995873,
+      "test": {
+        "accuracy": 0.9007759718006463,
+        "balanced_accuracy": 0.8935953777074129,
+        "macro_f1": 0.8109977521789041,
+        "confusion_matrix": [
+          [
+            46286,
+            3121,
+            24
+          ],
+          [
+            2213,
+            24981,
+            2499
+          ],
+          [
+            5,
+            245,
+            2330
+          ]
+        ],
+        "per_class": {
+          "safe": {
+            "precision": 0.9542718126340096,
+            "recall": 0.9363759584066679,
+            "f1-score": 0.9452391892581814,
+            "support": 49431.0
+          },
+          "moderate": {
+            "precision": 0.8812572759022119,
+            "recall": 0.8413093995217729,
+            "f1-score": 0.8608201240523776,
+            "support": 29693.0
+          },
+          "danger": {
+            "precision": 0.48011539254069646,
+            "recall": 0.9031007751937985,
+            "f1-score": 0.6269339432261536,
+            "support": 2580.0
+          },
+          "accuracy": 0.9007759718006463,
+          "macro avg": {
+            "precision": 0.7718814936923061,
+            "recall": 0.8935953777074129,
+            "f1-score": 0.8109977521789041,
+            "support": 81704.0
+          },
+          "weighted avg": {
+            "precision": 0.9127641238670212,
+            "recall": 0.9007759718006463,
+            "f1-score": 0.9045082233578758,
+            "support": 81704.0
+          }
+        }
+      }
+    }
+  },
+  "persistence_baseline": {
+    "accuracy": 0.9039949084500147,
+    "balanced_accuracy": 0.8437992245576106,
+    "macro_f1": 0.8435076769979334,
+    "confusion_matrix": [
+      [
+        46184,
+        3244,
+        3
+      ],
+      [
+        3193,
+        25797,
+        703
+      ],
+      [
+        7,
+        694,
+        1879
+      ]
+    ],
+    "per_class": {
+      "safe": {
+        "precision": 0.9352016847561964,
+        "recall": 0.9343124759766138,
+        "f1-score": 0.9347568688964226,
+        "support": 49431.0
+      },
+      "moderate": {
+        "precision": 0.8675634773835548,
+        "recall": 0.868790624052807,
+        "f1-score": 0.8681766170828565,
+        "support": 29693.0
+      },
+      "danger": {
+        "precision": 0.7268858800773694,
+        "recall": 0.7282945736434109,
+        "f1-score": 0.7275895450145208,
+        "support": 2580.0
+      },
+      "accuracy": 0.9039949084500147,
+      "macro avg": {
+        "precision": 0.8432170140723736,
+        "recall": 0.8437992245576106,
+        "f1-score": 0.8435076769979334,
+        "support": 81704.0
+      },
+      "weighted avg": {
+        "precision": 0.9040424261203006,
+        "recall": 0.9039949084500147,
+        "f1-score": 0.9040183602222387,
+        "support": 81704.0
+      }
+    }
+  },
+  "permutation_importance_macro_f1": {
+    "wave_now_m": 0.35221707405720676,
+    "wave_6h_ago_m": 0.01699407398910635,
+    "wind_now_ms": 0.09909670947394204,
+    "wind_6h_ago_ms": 0.016073967111001692,
+    "latitude": 0.0008993166335483638,
+    "longitude": 0.016092419411365005,
+    "season_sin": 0.010988752766538287,
+    "season_cos": 0.01902001378040674,
+    "hour_sin": 0.021719042079238544,
+    "hour_cos": 0.010501527064217364
+  },
+  "limitations": [
+    "Targets are derived from future wave/wind using the documented project policy, not recorded government warnings or accident outcomes.",
+    "Scores measure six-hour prediction of those derived labels, not certified safety accuracy.",
+    "Class-weighted model probabilities are uncalibrated scores, not accident probabilities.",
+    "Live inputs are operational forecasts; historical inputs are ECMWF analyses. Prospective validation remains necessary."
+  ],
+  "conservative_ensemble": {
+    "accuracy": 0.8996499559385097,
+    "balanced_accuracy": 0.8947034254568719,
+    "macro_f1": 0.8098186715095052,
+    "confusion_matrix": [
+      [
+        45940,
+        3464,
+        27
+      ],
+      [
+        1927,
+        25230,
+        2536
+      ],
+      [
+        4,
+        241,
+        2335
+      ]
+    ],
+    "per_class": {
+      "safe": {
+        "precision": 0.9596624261034864,
+        "recall": 0.9293763023204062,
+        "f1-score": 0.9442765821874165,
+        "support": 49431.0
+      },
+      "moderate": {
+        "precision": 0.8719543805080352,
+        "recall": 0.8496952143602869,
+        "f1-score": 0.8606809033226445,
+        "support": 29693.0
+      },
+      "danger": {
+        "precision": 0.47672519395671703,
+        "recall": 0.9050387596899225,
+        "f1-score": 0.6244985290184542,
+        "support": 2580.0
+      },
+      "accuracy": 0.8996499559385097,
+      "macro avg": {
+        "precision": 0.7694473335227462,
+        "recall": 0.8947034254568719,
+        "f1-score": 0.8098186715095052,
+        "support": 81704.0
+      },
+      "weighted avg": {
+        "precision": 0.9125375233226629,
+        "recall": 0.8996499559385097,
+        "f1-score": 0.9037983452625709,
+        "support": 81704.0
+      }
+    }
+  }
+}

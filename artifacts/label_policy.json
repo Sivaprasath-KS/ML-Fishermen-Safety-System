@@ -1,0 +1,25 @@
+{
+  "version": "imd-sea-state-derived-v1",
+  "label_origin": "project_derived_from_government_guidance",
+  "government_issued_labels": false,
+  "source_title": "IMD Cyclone Warning in India \u2014 Standard Operation Procedure, Table 6.10, printed page 146",
+  "source_url": "https://rsmcnewdelhi.imd.gov.in/images/pdf/sop.pdf#page=174",
+  "boundary_source_url": "https://www.nodc.noaa.gov/gtspp/document/codetbls/wmocodes/table3700.html",
+  "mapping": {
+    "safe": "Wave height \u22641.25 m AND wind <17 knots (8.746 m/s).",
+    "moderate": "Wave height >1.25 to 2.5 m OR wind \u226517 to <22 knots, unless danger applies.",
+    "danger": "Wave height >2.5 m OR wind \u226522 knots (11.318 m/s)."
+  },
+  "wave_boundaries_m": [
+    1.25,
+    2.5
+  ],
+  "wind_boundaries_knots": [
+    17,
+    22
+  ],
+  "boundary_rule": "Exact wave boundaries retain the lower sea-state group (WMO 3700). Wind uses continuous cutoffs at the published lower knot bounds.",
+  "aggregation": "The worse of wave and wind groups determines the project class.",
+  "meaning": "Safe means the lowest project weather-risk class, not permission to sail or a vessel-specific guarantee.",
+  "limitations": "IMD publishes sea-state descriptions, not this three-class safety taxonomy. This mapping, its wind/wave combination and its use on significant total wave height are project assumptions, not government endorsements. No historical official warning labels are present."
+}

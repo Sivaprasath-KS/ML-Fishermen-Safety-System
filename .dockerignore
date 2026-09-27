@@ -1,0 +1,12 @@
+.venv
+node_modules
+DataSet
+.git
+.agents
+.codex
+.pytest_cache
+__pycache__
+test-results
+artifacts/screenshots
+unnecessary
+docs

@@ -1,0 +1,13 @@
+# Paid plan: requires owner approval before service creation.
+# App + both existing models peaked at 1.88 GiB locally; 512 MB free is insufficient.
+services:
+  - type: web
+    name: kadal-fishermen-safety
+    runtime: python
+    branch: main
+    plan: 2c-4g
+    region: singapore
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn backend.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/health
+    autoDeployTrigger: commit
