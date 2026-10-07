@@ -1,7 +1,8 @@
 """Standalone live model-data gateway. No Kadal runtime dependencies."""
 import asyncio
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 import math
+import logging
 
 import httpx
 from fastapi import FastAPI, HTTPException, Query, Response
@@ -10,6 +11,8 @@ app = FastAPI(title="Kadal Data Gateway", version="1.0.0")
 MARINE_URL = "https://marine-api.open-meteo.com/v1/marine"
 WEATHER_URL = "https://api.open-meteo.com/v1/forecast"
 MARINE_FIELDS = ("wave_height", "wave_period", "wave_direction")
+MAX_DATA_AGE = timedelta(hours=2)
+logger = logging.getLogger("kadal.gateway")
 WEATHER_FIELDS = ("wind_speed_10m", "wind_direction_10m")
 
 
@@ -33,8 +36,11 @@ def hourly_rows(payload, fields):
 def current_values(marine, weather, now):
     m = hourly_rows(marine, MARINE_FIELDS)
     w = hourly_rows(weather, WEATHER_FIELDS)
-    # Require the same current hour in both sources, never a future or stale row.
-    stamp = now.replace(minute=0, second=0, microsecond=0)
+    common = [stamp for stamp in m.keys() & w.keys()
+              if now - MAX_DATA_AGE <= stamp <= now]
+    if not common:
+        raise ValueError("No common marine/weather timestamp within the last 2 hours")
+    stamp = max(common)
     values = [*m[stamp], *w[stamp]]
     for value in values:
         if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value) or value < 0:
@@ -55,18 +61,44 @@ async def device_data(response: Response,
                       longitude: float = Query(ge=77, le=81, allow_inf_nan=False)):
     params = {"latitude": latitude, "longitude": longitude, "past_hours": 6,
               "forecast_hours": 1, "timezone": "GMT"}
+    diagnostics = {}
+
+    async def fetch(client, name, url, query):
+        result = await client.get(url, params=query)
+        diagnostics[name + "_status"] = result.status_code
+        # Collect diagnostics before HTTP validation, including the other source's
+        # successful response when one request fails. Bound log size.
+        try:
+            data = result.json()
+            times = data.get("hourly", {}).get("time", [])
+            diagnostics[name + "_timestamps"] = times[-32:] if isinstance(times, list) else repr(times)[:500]
+        except (ValueError, AttributeError, TypeError):
+            diagnostics[name + "_timestamps"] = "unavailable"
+        result.raise_for_status()
+        return result.json()
+
     try:
         async with asyncio.timeout(25):
             async with httpx.AsyncClient(timeout=httpx.Timeout(20, connect=8)) as client:
-                marine, weather = await asyncio.gather(
-                    client.get(MARINE_URL, params={**params, "hourly": ",".join(MARINE_FIELDS), "cell_selection": "sea"}),
-                    client.get(WEATHER_URL, params={**params, "hourly": ",".join(WEATHER_FIELDS), "wind_speed_unit": "ms"}),
+                results = await asyncio.gather(
+                    fetch(client, "marine", MARINE_URL, {**params, "hourly": ",".join(MARINE_FIELDS), "cell_selection": "sea"}),
+                    fetch(client, "weather", WEATHER_URL, {**params, "hourly": ",".join(WEATHER_FIELDS), "wind_speed_unit": "ms"}),
+                    return_exceptions=True,
                 )
-            marine.raise_for_status()
-            weather.raise_for_status()
+            for result in results:
+                if isinstance(result, Exception):
+                    raise result
+            marine, weather = results
             now = datetime.now(timezone.utc)
-            values = current_values(marine.json(), weather.json(), now)
+            values = current_values(marine, weather, now)
     except (httpx.HTTPError, TimeoutError, KeyError, TypeError, ValueError, IndexError, OverflowError) as exc:
+        logger.exception(
+            "Live data failed: %s: %s; marine_status=%s weather_status=%s; "
+            "marine_timestamps=%s weather_timestamps=%s",
+            type(exc).__name__, str(exc), diagnostics.get("marine_status"),
+            diagnostics.get("weather_status"), diagnostics.get("marine_timestamps", "unavailable"),
+            diagnostics.get("weather_timestamps", "unavailable"),
+        )
         raise HTTPException(503, "Live marine/weather data is unavailable or incomplete. Please retry.",
                             headers={"Retry-After": "60", "Cache-Control": "no-store"}) from exc
     response.headers["Cache-Control"] = "no-store"

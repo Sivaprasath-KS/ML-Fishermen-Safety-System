@@ -71,9 +71,65 @@ class GatewayTests(unittest.IsolatedAsyncioTestCase):
                 if mode == "negative": data["hourly"][fields[0]][-1] = -1
                 return httpx.Response(200, json=data)
             with self.subTest(mode=mode):
-                response = await self.request(upstream)
+                with self.assertLogs("kadal.gateway", level="ERROR"):
+                    response = await self.request(upstream)
                 self.assertEqual(response.status_code, 503)
                 self.assertNotIn("wave_m", response.json())
+
+
+    async def test_different_latest_timestamps_use_latest_common(self):
+        def upstream(request):
+            marine = request.url.host.startswith("marine")
+            fields = main.MARINE_FIELDS if marine else main.WEATHER_FIELDS
+            data = payload(fields)
+            if marine:
+                for values in data["hourly"].values(): values.pop()
+            return httpx.Response(200, json=data)
+        response = await self.request(upstream)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["wave_m"], 1)
+        self.assertEqual(response.json()["wind_ms"], 1)
+
+    async def test_no_common_timestamp(self):
+        def upstream(request):
+            marine = request.url.host.startswith("marine")
+            data = payload(main.MARINE_FIELDS if marine else main.WEATHER_FIELDS)
+            if not marine:
+                data["hourly"]["time"] = [(datetime.fromisoformat(t) + timedelta(minutes=10)).isoformat()
+                                         for t in data["hourly"]["time"]]
+            return httpx.Response(200, json=data)
+        with self.assertLogs("kadal.gateway", level="ERROR") as logs:
+            response = await self.request(upstream)
+        self.assertEqual(response.status_code, 503)
+        self.assertIn("No common", " ".join(logs.output))
+
+    async def test_http_failure_logs_both_sources_without_client_details(self):
+        def upstream(request):
+            if request.url.host.startswith("marine"):
+                return httpx.Response(429, json={"reason": "test upstream limit"})
+            return httpx.Response(200, json=payload(main.WEATHER_FIELDS))
+        with self.assertLogs("kadal.gateway", level="ERROR") as logs:
+            response = await self.request(upstream)
+        message = " ".join(logs.output)
+        for expected in ["HTTPStatusError", "marine_status=429", "weather_status=200",
+                         "marine_timestamps=", "weather_timestamps="]:
+            self.assertIn(expected, message)
+        self.assertEqual(response.json(), {"detail": "Live marine/weather data is unavailable or incomplete. Please retry."})
+
+    def test_time_window_future_and_timezone_normalization(self):
+        now = datetime(2026, 10, 7, 12, 30, tzinfo=timezone.utc)
+        def rows(fields, times):
+            return {"hourly": {"time": times, **{f: list(range(1, len(times)+1)) for f in fields}}}
+        times = ["2026-10-07T10:30:00Z", "2026-10-07T12:00:00Z", "2026-10-07T13:00:00Z"]
+        m = rows(main.MARINE_FIELDS, times)
+        w = rows(main.WEATHER_FIELDS, ["2026-10-07T16:00:00+05:30", "2026-10-07T17:30:00+05:30", "2026-10-07T18:30:00+05:30"])
+        self.assertEqual(main.current_values(m, w, now)["wave_m"], 2)
+        for timestamp, accepted in [("2026-10-07T10:30:00Z", True), ("2026-10-07T10:29:59Z", False), ("2026-10-07T13:00:00Z", False)]:
+            m, w = rows(main.MARINE_FIELDS, [timestamp]), rows(main.WEATHER_FIELDS, [timestamp])
+            if accepted:
+                self.assertEqual(main.current_values(m, w, now)["wave_m"], 1)
+            else:
+                with self.assertRaises(ValueError): main.current_values(m, w, now)
 
 
 if __name__ == "__main__":

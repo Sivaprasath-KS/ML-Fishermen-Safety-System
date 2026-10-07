@@ -45,9 +45,11 @@ Units are metres, seconds, degrees and metres/second. Values are not fabricated,
 interpolated by this service or replaced with zero when missing.
 
 `fetched_at` is UTC retrieval time, not model issuance time. Values correspond to
-the current UTC hour in BOTH upstream responses. Missing/null/invalid current
-values or missing current timestamps produce 503; older or future rows are not
-substituted. An hour rollover during fetching may therefore require a retry.
+the latest common timestamp in BOTH upstream responses that is not in the future
+and is no more than **2 hours old** at retrieval. This tolerates different hourly
+coverage and hour rollovers without mixing timestamps. No recent common timestamp
+means 503. Null/invalid values at the selected timestamp also produce 503; the
+service does not search older rows to hide invalid readings.
 The six past hours are requested as specified but are not sent to the device.
 
 Invalid/missing coordinates return 422 (latitude 7–14, longitude 77–81 inclusive).
@@ -165,3 +167,32 @@ a real Open-Meteo data response of 252 bytes with HTTP 200, and invalid-coordina
 HTTP 422. Existing backend, ML source and frontend checksums remained unchanged.
 The Arduino sketch has not been compiled or tested on hardware in this environment.
 No public service has been deployed.
+
+
+## Diagnosing gateway 503 responses
+
+The former exact-current-hour lookup could reject usable overlapping hourly data.
+The gateway now intersects timestamps, normalizes them to UTC, and selects the
+newest common timestamp within the two-hour freshness limit. Output fields and
+Render root/build/start settings are unchanged.
+
+In Render logs, search for `Live data failed`. Each failure includes the exception
+class/message and traceback, marine/weather HTTP status where available, and up
+to 32 available timestamps from each response. A timeout before a response has no
+HTTP status. Concurrent requests retain diagnostics from a successful source even
+when the other fails. Client responses remain the same generic 503; internal
+exception details are logged only on the server.
+
+Timestamp mismatch is one possible cause, not proof of the deployed failure:
+HTTP 429/403, provider outages, network timeouts and null fields still correctly
+produce 503. Use the new logs to distinguish these before further changes.
+
+Local regression and live checks (port 8001):
+
+```bash
+python -m unittest -v test_gateway.py
+uvicorn main:app --host 0.0.0.0 --port 8001
+# In another terminal:
+curl http://127.0.0.1:8001/api/health
+curl 'http://127.0.0.1:8001/api/device/data?latitude=10.9&longitude=80.2'
+```
